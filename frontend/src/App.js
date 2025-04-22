@@ -41,11 +41,15 @@ function App() {
     setLoading(true);
     setError('');
     try {
+      console.log('Fetching video info for URL:', url);
       const response = await axios.get(`${API_URL}/api/info?url=${encodeURIComponent(url)}`);
+      console.log('Video info received:', response.data);
       setVideoInfo(response.data);
       setTimeRange([0, response.data.duration]);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch video information');
+      console.error('Error fetching video info:', err);
+      const errorMessage = err.response?.data?.details || err.response?.data?.error || 'Failed to fetch video information';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,6 +69,7 @@ function App() {
 
       window.location.href = `${API_URL}/api/download?${params.toString()}`;
     } catch (err) {
+      console.error('Error initiating download:', err);
       setError(err.response?.data?.error || 'Failed to initiate download');
     } finally {
       setLoading(false);
@@ -94,6 +99,8 @@ function App() {
               onChange={(e) => setUrl(e.target.value)}
               margin="normal"
               required
+              placeholder="https://www.youtube.com/watch?v=..."
+              helperText="Enter a valid YouTube URL"
             />
             <Button
               type="submit"

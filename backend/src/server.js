@@ -21,7 +21,7 @@ app.use(express.json());
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Global error handler:', err.stack);
   res.status(500).json({ error: 'Something broke!' });
 });
 
@@ -37,13 +37,23 @@ app.get('/health', (req, res) => {
 // Routes
 app.get('/api/info', async (req, res) => {
     try {
-        console.log('Video info requested:', req.query.url);
-        const { url } = req.query;
-        if (!url) {
+        console.log('Video info requested with URL:', req.query.url);
+        
+        if (!req.query.url) {
+            console.log('No URL provided in request');
             return res.status(400).json({ error: 'URL is required' });
         }
 
-        const info = await ytdl.getInfo(url);
+        // Validate YouTube URL
+        if (!ytdl.validateURL(req.query.url)) {
+            console.log('Invalid YouTube URL:', req.query.url);
+            return res.status(400).json({ error: 'Invalid YouTube URL' });
+        }
+
+        console.log('Fetching video info...');
+        const info = await ytdl.getInfo(req.query.url);
+        console.log('Video title:', info.videoDetails.title);
+
         const formats = info.formats
             .filter(format => format.hasVideo && format.hasAudio)
             .map(format => ({
@@ -53,14 +63,23 @@ app.get('/api/info', async (req, res) => {
                 contentLength: format.contentLength
             }));
 
+        console.log('Available formats:', formats.length);
+        
         res.json({
             title: info.videoDetails.title,
             formats,
             duration: info.videoDetails.lengthSeconds
         });
     } catch (error) {
-        console.error('Error in /api/info:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Detailed error in /api/info:', {
+            message: error.message,
+            stack: error.stack,
+            url: req.query.url
+        });
+        res.status(500).json({ 
+            error: 'Failed to fetch video information',
+            details: error.message 
+        });
     }
 });
 
