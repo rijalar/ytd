@@ -10,7 +10,7 @@ const port = process.env.PORT || 3001;
 
 // CORS configuration
 const corsOptions = {
-  origin: ['https://generous-presence.up.railway.app', 'http://localhost:3000'],
+  origin: ['https://ytd-production-66d8.up.railway.app', 'http://localhost:3000'],
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
 };
@@ -19,17 +19,25 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
+});
+
 // Serve static files from the frontend build directory
 app.use(express.static(path.join(__dirname, '../../frontend/build')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  console.log('Health check requested');
   res.status(200).json({ status: 'ok' });
 });
 
 // Routes
 app.get('/api/info', async (req, res) => {
     try {
+        console.log('Video info requested:', req.query.url);
         const { url } = req.query;
         if (!url) {
             return res.status(400).json({ error: 'URL is required' });
@@ -51,12 +59,14 @@ app.get('/api/info', async (req, res) => {
             duration: info.videoDetails.lengthSeconds
         });
     } catch (error) {
+        console.error('Error in /api/info:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 app.get('/api/download', async (req, res) => {
     try {
+        console.log('Download requested:', req.query);
         const { url, itag, startTime, endTime, audioOnly } = req.query;
         
         if (!url) {
@@ -87,12 +97,14 @@ app.get('/api/download', async (req, res) => {
             ytdl(url, { quality: itag }).pipe(res);
         }
     } catch (error) {
+        console.error('Error in /api/download:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
+    console.log('Serving React app for path:', req.path);
     res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
 });
 
