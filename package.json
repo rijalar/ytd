@@ -1,0 +1,12 @@
+{
+  "name": "ytd",
+  "version": "1.0.0",
+  "description": "YouTube Video Downloader",
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "author": "",
+  "license": "MIT"
+} 
