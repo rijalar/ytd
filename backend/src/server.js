@@ -11,7 +11,14 @@ const port = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+
+// Serve static files from the frontend build directory
+app.use(express.static(path.join(__dirname, '../../frontend/build')));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Routes
 app.get('/api/info', async (req, res) => {
@@ -75,6 +82,11 @@ app.get('/api/download', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
 });
 
 app.listen(port, () => {
