@@ -8,8 +8,15 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3001;
 
+// CORS configuration
+const corsOptions = {
+  origin: ['https://generous-presence.up.railway.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static files from the frontend build directory
